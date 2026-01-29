@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
 	Box,
 	Paper,
@@ -38,12 +39,45 @@ interface SearchFormProps {
 	isLoading?: boolean
 }
 
+// Helper to get initial values from URL params
+function getInitialValuesFromURL ( searchParams: URLSearchParams ) {
+	const originCode = searchParams.get( 'origin' )
+	const destinationCode = searchParams.get( 'destination' )
+	const departureDateParam = searchParams.get( 'departureDate' )
+	const returnDateParam = searchParams.get( 'returnDate' )
+	const adultsParam = searchParams.get( 'adults' )
+
+	return {
+		origin: originCode ? popularAirports.find( a => a.iataCode === originCode ) || null : null,
+		destination: destinationCode ? popularAirports.find( a => a.iataCode === destinationCode ) || null : null,
+		departureDate: departureDateParam ? new Date( departureDateParam ) : null,
+		returnDate: returnDateParam ? new Date( returnDateParam ) : null,
+		adults: adultsParam ? parseInt( adultsParam, 10 ) || 1 : 1,
+	}
+}
+
 export default function SearchForm ( { onSearch, isLoading = false }: SearchFormProps ) {
-	const [ origin, setOrigin ] = useState<Airport | null>( null )
-	const [ destination, setDestination ] = useState<Airport | null>( null )
-	const [ departureDate, setDepartureDate ] = useState<Date | null>( null )
-	const [ returnDate, setReturnDate ] = useState<Date | null>( null )
-	const [ adults, setAdults ] = useState( 1 )
+	const searchParams = useSearchParams()
+
+	// Get initial values from URL (computed once on first render)
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const initialValues = useMemo( () => getInitialValuesFromURL( searchParams ), [] )
+
+	const [ origin, setOrigin ] = useState<Airport | null>( initialValues.origin )
+	const [ destination, setDestination ] = useState<Airport | null>( initialValues.destination )
+	const [ departureDate, setDepartureDate ] = useState<Date | null>(
+		initialValues.departureDate && !isNaN( initialValues.departureDate.getTime() )
+			? initialValues.departureDate
+			: null
+	)
+	const [ returnDate, setReturnDate ] = useState<Date | null>(
+		initialValues.returnDate && !isNaN( initialValues.returnDate.getTime() )
+			? initialValues.returnDate
+			: null
+	)
+	const [ adults, setAdults ] = useState(
+		initialValues.adults >= 1 && initialValues.adults <= 9 ? initialValues.adults : 1
+	)
 	const [ errors, setErrors ] = useState<Record<string, string>>( {} )
 
 	// Swap origin and destination

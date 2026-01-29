@@ -6,6 +6,7 @@ import { visuallyHidden } from '@mui/utils'
 import SearchForm from '@/app/components/SearchForm/SearchForm'
 import { FilterPanel } from '@/app/components/Filters/FilterPanel'
 import { FilterChips } from '@/app/components/Filters/FilterChips'
+import { InteractiveChart } from '@/app/components/PriceChart/InteractiveChart'
 import { useFlightsSearch } from '@/app/hooks/useFlightsSearch'
 import { useFlightsFilters } from '@/app/hooks/useFlightsFilters'
 import FlightsDataGrid from './components/FlightsTable/FlightsDataGrid'
@@ -200,6 +201,16 @@ export default function Home () {
 
                 {/* Results Grid */ }
                 <Grid size={ { xs: 12, md: 'grow' } } sx={ { minWidth: 0, width: { xs: '100%', md: 'auto' } } }>
+                  {/* Price Distribution Chart */ }
+                  <InteractiveChart
+                    flights={ flights }
+                    filteredFlights={ filteredFlights }
+                    priceRange={ filters.priceRange }
+                    priceExtent={ priceExtent }
+                    onPriceRangeChange={ setPriceRange }
+                    isLoading={ isLoading }
+                  />
+
                   <FlightsDataGrid
                     flights={ filteredFlights }
                     isLoading={ isLoading }
