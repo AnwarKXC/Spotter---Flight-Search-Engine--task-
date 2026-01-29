@@ -56,108 +56,105 @@ app/
 ## 📅 Day 1: Search & Core Results (~4h)
 
 ### TODO 1.1: Amadeus API Client
-- [ ] Create `app/lib/amadeus.ts`
-  - [ ] Initialize Amadeus client with env credentials
-  - [ ] Implement `searchFlights(params)` function
-  - [ ] Add TypeScript interfaces for API response
-  - [ ] Handle authentication token refresh
-- [ ] Create `app/lib/mockData.ts`
-  - [ ] Generate 20+ realistic flight objects
-  - [ ] Match Amadeus response structure
-  - [ ] Include variety: airlines, stops, prices, durations
+- [x] Create `app/lib/amadeus.ts`
+  - [x] Initialize Amadeus client with env credentials
+  - [x] Implement `searchFlights(params)` function
+  - [x] Add TypeScript interfaces for API response
+  - [x] Handle authentication token refresh
+- [x] Create `app/lib/mockData.ts`
+  - [x] Generate 20+ realistic flight objects
+  - [x] Match Amadeus response structure
+  - [x] Include variety: airlines, stops, prices, durations
 
 ### TODO 1.2: Search Form Component
-- [ ] Create `app/components/SearchForm/SearchForm.tsx`
-  - [ ] Add `"use client"` directive
-  - [ ] Origin airport autocomplete (MUI Autocomplete)
-  - [ ] Destination airport autocomplete
-  - [ ] Departure date picker (MUI DatePicker)
-  - [ ] Return date picker (optional)
-  - [ ] Passengers selector
-  - [ ] Search button with loading state
-- [ ] Implement form validation
-  - [ ] Required fields check
-  - [ ] Date logic (return after departure)
-  - [ ] Display inline error messages
-- [ ] Sync search params to URL
-  - [ ] Use `useSearchParams` hook
-  - [ ] Enable shareable search links
+- [x] Create `app/components/SearchForm/SearchForm.tsx`
+  - [x] Add `"use client"` directive
+  - [x] Origin airport autocomplete (MUI Autocomplete)
+  - [x] Destination airport autocomplete
+  - [x] Departure date picker (MUI DatePicker)
+  - [x] Return date picker (optional)
+  - [x] Passengers selector
+  - [x] Search button with loading state
+- [x] Implement form validation
+  - [x] Required fields check
+  - [x] Date logic (return after departure)
+  - [x] Display inline error messages
+- [x] Sync search params to URL
+  - [x] Use `useSearchParams` hook
+  - [x] Enable shareable search links
 
 ### TODO 1.3: Basic Results Display
-- [ ] Create `app/components/FlightsTable/FlightsDataGrid.tsx`
-  - [ ] Add `"use client"` directive
-  - [ ] Basic MUI DataGrid setup
-  - [ ] Display: airline, price, duration, stops
-  - [ ] Loading skeleton rows (use `loading` prop)
-- [ ] Create `app/components/FlightsTable/GridEmptyState.tsx`
-  - [ ] "No flights found" message
-  - [ ] Helpful guidance text
-  - [ ] Search adjustment suggestions
+- [x] Create `app/components/FlightsTable/FlightsDataGrid.tsx`
+  - [x] Add `"use client"` directive
+  - [x] Basic MUI DataGrid setup
+  - [x] Display: airline, price, duration, stops
+  - [x] Loading skeleton rows (use `loading` prop)
+- [x] Create `app/components/FlightsTable/GridEmptyState.tsx`
+  - [x] "No flights found" message
+  - [x] Helpful guidance text
+  - [x] Search adjustment suggestions
 
 ### TODO 1.4: Error Handling
-- [ ] Create `app/hooks/useApiErrorHandling.ts`
-  - [ ] Exponential backoff retry (3 attempts)
-  - [ ] Rate limit detection (429 status)
-  - [ ] Network failure handling
-  - [ ] Error state management
-- [ ] Implement error messages:
-  - [ ] 429: "API quota exceeded, showing cached results"
-  - [ ] Network: "Connection failed, retrying..."
-  - [ ] Invalid: "Please adjust search criteria"
-- [ ] Add fallback to mock data when API fails
+- [x] Create `app/hooks/useApiErrorHandling.ts`
+  - [x] Exponential backoff retry (3 attempts)
+  - [x] Rate limit detection (429 status)
+  - [x] Network failure handling
+  - [x] Error state management
+- [x] Implement error messages:
+  - [x] 429: "API quota exceeded, showing cached results"
+  - [x] Network: "Connection failed, retrying..."
+  - [x] Invalid: "Please adjust search criteria"
+- [x] Add fallback to mock data when API fails
 
 ---
 
 ## 📅 Day 2: Data Grid Mastery + Filter UI (~4.5h)
 
 ### TODO 2.1: Custom Column Renderers
-- [ ] Create `app/components/FlightsTable/columns.tsx`
-  - [ ] **Price column**: Currency format, green for cheapest
-  - [ ] **Stops column**: Visual indicators
-    - 0: "✈️ Nonstop"
-    - 1: "✈️━✈️ 1 stop"
-    - 2+: "✈️━━✈️ 2+ stops"
-  - [ ] **Duration column**: Minutes → "2h 15m" format
-  - [ ] **Departure/Arrival**: "14:30 JFK" format
-  - [ ] **Airline column**: Logo + name (if available)
-- [ ] Add sorting configuration per column
-- [ ] Add column visibility defaults
+- [x] Create `app/components/FlightsTable/columns.tsx`
+  - [x] **Price column**: Currency format, green for cheapest
+  - [x] **Stops column**: Visual indicators (DIRECT / 1 STOP / 2+ STOPS)
+  - [x] **Duration column**: Minutes → "2h 15m" format
+  - [x] **Departure/Arrival**: "14:30 JFK" format
+  - [x] **Airline column**: Name + flight number
+- [x] Add sorting configuration per column
+- [x] Add column visibility defaults
 
 ### TODO 2.2: DataGrid Advanced Features
-- [ ] Enable column resize & reorder
-- [ ] Configure virtualized scrolling
-- [ ] Add row hover states
-- [ ] Implement sticky header
-- [ ] Create `app/components/FlightsTable/GridToolbar.tsx`
-  - [ ] Column visibility toggle
-  - [ ] Export button (optional)
-  - [ ] Density selector
+- [x] Enable column resize & reorder
+- [x] Configure virtualized scrolling
+- [x] Add row hover states
+- [x] Implement sticky header
+- [x] Create `app/components/FlightsTable/GridToolbar.tsx`
+  - [x] Column visibility toggle
+  - [x] Export button (optional)
+  - [x] Density selector
 
 ### TODO 2.3: Grid Preferences Persistence
-- [ ] Create `app/hooks/useGridPreferences.ts`
-  - [ ] Save column order to localStorage
-  - [ ] Save column widths to localStorage
-  - [ ] Save column visibility to localStorage
-  - [ ] Load preferences on mount
-  - [ ] Debounce saves (500ms)
+- [x] Create `app/hooks/useGridPreferences.ts`
+  - [x] Save column order to localStorage
+  - [x] Save column widths to localStorage
+  - [x] Save column visibility to localStorage
+  - [x] Load preferences on mount
+  - [x] Debounce saves (500ms)
 
 ### TODO 2.4: Filter UI Components (No Logic Yet)
-- [ ] Create `app/components/Filters/FilterPanel.tsx`
-  - [ ] Add `"use client"` directive
-  - [ ] **Stops filter**: Chip selection (0 / 1 / 2+)
-  - [ ] **Airline filter**: Autocomplete multi-select
-  - [ ] **Price range**: Dual-thumb slider
-  - [ ] Clear all button
-- [ ] Responsive layout:
-  - [ ] Desktop: Collapsible sidebar
-  - [ ] Mobile: Bottom drawer (MUI SwipeableDrawer)
+- [x] Create `app/components/Filters/FilterPanel.tsx`
+  - [x] Add `"use client"` directive
+  - [x] **Stops filter**: Chip selection (0 / 1 / 2+)
+  - [x] **Airline filter**: Autocomplete multi-select
+  - [x] **Price range**: Dual-thumb slider
+  - [x] Clear all button
+- [x] Responsive layout:
+  - [x] Desktop: Collapsible sidebar
+  - [x] Mobile: Bottom drawer (MUI SwipeableDrawer)
 
 ---
 
 ## 📅 Day 3: Filter Logic + Live Chart (~5.5h)
 
 ### TODO 3.1: Filter State Management
-- [ ] Create `app/hooks/useFlightsFilters.ts`
+- [x] Create `app/hooks/useFlightsFilters.ts`
   ```typescript
   const [filters, setFilters] = useState({
     stops: [],           // [0, 1, 2]
@@ -165,84 +162,84 @@ app/
     priceRange: [0, 10000]
   });
   ```
-  - [ ] Implement `applyFilters(flights, filters)` function
-  - [ ] Add debouncing (300ms) for performance
-  - [ ] Memoize filtered results with `useMemo`
+  - [x] Implement `applyFilters(flights, filters)` function
+  - [x] Add debouncing (300ms) for performance
+  - [x] Memoize filtered results with `useMemo`
 
 ### TODO 3.2: Wire Filters to DataGrid
-- [ ] Connect FilterPanel to useFlightsFilters hook
-- [ ] Pass filtered flights to DataGrid
-- [ ] Show loading overlay during filter application
-- [ ] Create `app/components/Filters/FilterChips.tsx`
-  - [ ] Display active filters as chips
-  - [ ] Individual chip remove buttons
-  - [ ] "Clear all" option
+- [x] Connect FilterPanel to useFlightsFilters hook
+- [x] Pass filtered flights to DataGrid
+- [x] Show loading overlay during filter application
+- [x] Create `app/components/Filters/FilterChips.tsx`
+  - [x] Display active filters as chips
+  - [x] Individual chip remove buttons
+  - [x] "Clear all" option
 
 ### TODO 3.3: URL Filter Synchronization
-- [ ] Sync filter state to URL params
-- [ ] Parse filters from URL on load
-- [ ] Enable shareable filtered views
+- [x] Sync filter state to URL params
+- [x] Parse filters from URL on load
+- [x] Enable shareable filtered views
 
 ### TODO 3.4: Live Price Chart
-- [ ] Create `app/components/PriceChart/InteractiveChart.tsx`
-  - [ ] Add `"use client"` directive
-  - [ ] Recharts AreaChart with gradient fill
-  - [ ] X-axis: Price ranges or dates
-  - [ ] Y-axis: Number of flights
-  - [ ] Show min/max/avg price markers
-  - [ ] Highlight current filter range
-- [ ] Chart-filter synchronization:
-  - [ ] Chart updates when filters change
-  - [ ] (Enhanced) Click chart point → apply filter
-- [ ] Empty chart state with message
+- [x] Create `app/components/PriceChart/InteractiveChart.tsx`
+  - [x] Add `"use client"` directive
+  - [x] Recharts AreaChart with gradient fill
+  - [x] X-axis: Price ranges or dates
+  - [x] Y-axis: Number of flights
+  - [x] Show min/max/avg price markers
+  - [x] Highlight current filter range
+- [x] Chart-filter synchronization:
+  - [x] Chart updates when filters change
+  - [x] (Enhanced) Click chart point → apply filter
+- [x] Empty chart state with message
 
 ### TODO 3.5: Flight Badges
-- [ ] Compute badges per result set:
-  - [ ] "Cheapest" → lowest price flight
-  - [ ] "Fastest" → shortest duration flight
-  - [ ] "Best Value" → price/duration heuristic
-- [ ] Display as chips on flight rows
+- [x] Compute badges per result set:
+  - [x] "Cheapest" → lowest price flight
+  - [x] "Fastest" → shortest duration flight
+  - [x] "Best Value" → price/duration heuristic
+- [x] Display as chips on flight rows
 
 ---
 
 ## 📅 Day 4: Responsive Design & Polish (~5h)
 
 ### TODO 4.1: Desktop UX Polish
-- [ ] Sticky table header
-- [ ] Sticky filter sidebar
-- [ ] Dense layout for fast scanning
-- [ ] Row hover states with quick actions
-- [ ] Proper spacing and alignment
+- [x] Sticky table header
+- [x] Sticky filter sidebar
+- [x] Dense layout for fast scanning
+- [x] Row hover states with quick actions
+- [x] Proper spacing and alignment
 
 ### TODO 4.2: Mobile UX
-- [ ] Filters in SwipeableDrawer (bottom)
-- [ ] Touch-friendly controls (larger targets)
-- [ ] Collapsible price chart
-- [ ] Simplified column layout
+- [x] Filters in SwipeableDrawer (bottom)
+- [x] Touch-friendly controls (larger targets)
+- [x] Collapsible price chart
+- [x] Simplified column layout
 - [ ] Test on 320px, 375px, 768px widths
 
 ### TODO 4.3: Loading States
-- [ ] Skeleton loaders during search
-- [ ] Skeleton for filter panel
-- [ ] Chart loading placeholder
-- [ ] Button loading spinners
+- [x] Skeleton loaders during search
+- [x] Skeleton for filter panel
+- [x] Chart loading placeholder
+- [x] Button loading spinners
 
 ### TODO 4.4: Error States
-- [ ] Inline error banners (not modals)
-- [ ] Retry buttons for network errors
-- [ ] "Demo mode" banner when using mock data
-- [ ] Form validation error display
+- [x] Inline error banners (not modals)
+- [x] Retry buttons for network errors
+- [x] "Demo mode" banner when using mock data
+- [x] Form validation error display
 
 ### TODO 4.5: Empty States
-- [ ] No results: suggestions to broaden search
-- [ ] No filters match: clear filters prompt
-- [ ] Initial state: search prompt
+- [x] No results: suggestions to broaden search
+- [x] No filters match: clear filters prompt
+- [x] Initial state: search prompt
 
 ### TODO 4.6: Accessibility
-- [ ] Keyboard navigation for filters
-- [ ] ARIA labels on all interactive elements
-- [ ] Focus management in drawers/modals
-- [ ] Color contrast WCAG AA compliance
+- [x] Keyboard navigation for filters
+- [x] ARIA labels on all interactive elements
+- [x] Focus management in drawers/modals
+- [x] Color contrast WCAG AA compliance
 - [ ] Screen reader testing (basic)
 
 ---
@@ -269,10 +266,34 @@ app/
 - [ ] Hover tooltips with flight count
 - [ ] Zoom/pan controls
 
-### TODO E.4: Dark Mode
-- [ ] MUI theme dark palette
-- [ ] Theme toggle button
-- [ ] Persist preference in localStorage
+### TODO E.4: Dark Mode ✅
+- [x] MUI theme dark palette
+- [x] Theme toggle button (in Header)
+- [x] Persist preference in localStorage
+- [x] DataGrid dark mode (footer, scrollbar, cells, headers)
+- [x] Theme-aware global scrollbars
+
+### TODO E.5: IP-Based Geolocation ✅
+- [x] Auto-detect user location via IP
+- [x] Show nearby airports with "Nearby" badge
+- [x] Sort airports by distance from user
+
+### TODO E.6: Worldwide Airports Database ✅
+- [x] 100+ major international airports
+- [x] Grouped by region (North America, Europe, Asia, etc.)
+- [x] Search by city, IATA code, airport name, or country
+
+### TODO E.7: Design System Standardization ✅
+- [x] Centralized BORDER_RADIUS constants (small=8, medium=12, large=16)
+- [x] Consistent border radius across all components
+- [x] Fancy gradient Search button with hover animations
+- [x] Enhanced input styling with focus rings
+- [x] Disabled state for form inputs during loading
+
+### TODO E.8: Responsive Chart ✅
+- [x] Chart adapts for screens <400px
+- [x] Collapsible chart on mobile
+- [x] Touch-friendly controls
 
 ---
 

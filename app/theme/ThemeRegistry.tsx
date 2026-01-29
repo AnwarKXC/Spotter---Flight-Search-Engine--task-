@@ -1,22 +1,21 @@
-'use client';
+'use client'
 
-import * as React from 'react';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import NextAppDirEmotionCacheProvider from './EmotionCache';
-import theme from './theme';
+import * as React from 'react'
+import CssBaseline from '@mui/material/CssBaseline'
+import NextAppDirEmotionCacheProvider from './EmotionCache'
+import { ThemeContextProvider } from './ThemeContext'
 
-export default function ThemeRegistry({
+export default function ThemeRegistry ( {
   children,
 }: {
-  children: React.ReactNode;
-}) {
+  children: React.ReactNode
+} ) {
   return (
     <NextAppDirEmotionCacheProvider>
-      <ThemeProvider theme={theme}>
+      <ThemeContextProvider>
         <CssBaseline />
-        {children}
-      </ThemeProvider>
+        { children }
+      </ThemeContextProvider>
     </NextAppDirEmotionCacheProvider>
-  );
+  )
 }

@@ -7,9 +7,12 @@ import SearchForm from '@/app/components/SearchForm/SearchForm'
 import { FilterPanel } from '@/app/components/Filters/FilterPanel'
 import { FilterChips } from '@/app/components/Filters/FilterChips'
 import { InteractiveChart } from '@/app/components/PriceChart/InteractiveChart'
+import { DestinationSuggestions } from '@/app/components/DestinationSuggestions/DestinationSuggestions'
 import { useFlightsSearch } from '@/app/hooks/useFlightsSearch'
 import { useFlightsFilters } from '@/app/hooks/useFlightsFilters'
 import FlightsDataGrid from './components/FlightsTable/FlightsDataGrid'
+import { type SuggestedDestination } from '@/app/lib/geolocation'
+import Header from './components/Header/Header'
 
 export default function Home () {
   const {
@@ -61,10 +64,22 @@ export default function Home () {
     setPriceRange( priceExtent )
   }
 
+  // Handle selecting a suggested destination
+  const handleSelectDestination = ( destination: SuggestedDestination, originCode: string, departureDate: string, returnDate?: string ) => {
+    // Trigger search with the selected destination
+    search( {
+      origin: originCode,
+      destination: destination.airportCode,
+      departureDate: departureDate,
+      returnDate: returnDate,
+      adults: 1,
+    } )
+  }
+
   return (
     <Box
       component="div"
-      sx={ { minHeight: '100vh', bgcolor: 'background.default', py: { xs: 2, sm: 3, md: 4 } } }
+      sx={ { minHeight: '100vh', bgcolor: 'background.default' } }
     >
       {/* Skip Navigation Link for keyboard users */ }
       <Link
@@ -86,27 +101,10 @@ export default function Home () {
         Skip to main content
       </Link>
 
-      <Container maxWidth="xl">
-        {/* Header with semantic heading */ }
-        <Box
-          component="header"
-          role="banner"
-          sx={ { mb: { xs: 2, sm: 3, md: 4 } } }
-        >
-          <Typography
-            variant="h4"
-            component="h1"
-            fontWeight={ 600 }
-            gutterBottom
-            id="page-title"
-          >
-            <span role="img" aria-label="Airplane">✈️</span> Flight Search Engine
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Find and compare flights with real-time pricing
-          </Typography>
-        </Box>
+      {/* App Header with Dark Mode Toggle */ }
+      <Header />
 
+      <Container maxWidth="xl" sx={ { py: { xs: 2, sm: 3, md: 4 } } }>
         {/* Search Form Section */ }
         <Box
           component="section"
@@ -223,14 +221,10 @@ export default function Home () {
               </Grid>
             </Box>
           ) : (
-            <FlightsDataGrid
-              flights={ filteredFlights }
-              isLoading={ isLoading }
-              hasSearched={ hasSearched }
-              isMockData={ isMockData }
-              onClearFilters={ clearFilters }
-              hasActiveFilters={ hasActiveFilters }
-            />
+            <>
+              {/* Destination Suggestions - Show when no search */ }
+              <DestinationSuggestions onSelectDestination={ handleSelectDestination } />
+            </>
           ) }
         </Box>
       </Container>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
 	Box,
@@ -11,6 +11,8 @@ import {
 	CircularProgress,
 	IconButton,
 	InputAdornment,
+	Typography,
+	Chip,
 } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -20,12 +22,16 @@ import FlightLandIcon from '@mui/icons-material/FlightLand'
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz'
 import SearchIcon from '@mui/icons-material/Search'
 import PersonIcon from '@mui/icons-material/Person'
+import NearMeIcon from '@mui/icons-material/NearMe'
 import { popularAirports } from '@/app/lib/mockData'
+import { useUserLocation } from '@/app/hooks/useUserLocation'
 
 interface Airport {
 	iataCode: string
 	name: string
 	city: string
+	country: string
+	region: string
 }
 
 interface SearchFormProps {
@@ -58,10 +64,36 @@ function getInitialValuesFromURL ( searchParams: URLSearchParams ) {
 
 export default function SearchForm ( { onSearch, isLoading = false }: SearchFormProps ) {
 	const searchParams = useSearchParams()
+	const { location } = useUserLocation()
 
 	// Get initial values from URL (computed once on first render)
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const initialValues = useMemo( () => getInitialValuesFromURL( searchParams ), [] )
+
+	// Sort airports by user location - prioritize same country, then same region
+	const sortedAirports = useMemo( () => {
+		if ( !location ) return popularAirports
+
+		const userCountry = location.country
+		const userRegion = location.region
+
+		return [ ...popularAirports ].sort( ( a, b ) => {
+			// Same country gets highest priority
+			const aIsUserCountry = a.country === userCountry
+			const bIsUserCountry = b.country === userCountry
+			if ( aIsUserCountry && !bIsUserCountry ) return -1
+			if ( !aIsUserCountry && bIsUserCountry ) return 1
+
+			// Same region gets second priority
+			const aIsUserRegion = a.region === userRegion
+			const bIsUserRegion = b.region === userRegion
+			if ( aIsUserRegion && !bIsUserRegion ) return -1
+			if ( !aIsUserRegion && bIsUserRegion ) return 1
+
+			// Otherwise alphabetical by city
+			return a.city.localeCompare( b.city )
+		} )
+	}, [ location ] )
 
 	const [ origin, setOrigin ] = useState<Airport | null>( initialValues.origin )
 	const [ destination, setDestination ] = useState<Airport | null>( initialValues.destination )
@@ -79,6 +111,40 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 		initialValues.adults >= 1 && initialValues.adults <= 9 ? initialValues.adults : 1
 	)
 	const [ errors, setErrors ] = useState<Record<string, string>>( {} )
+
+	// Sync form state with URL params when they change (e.g., from destination card click)
+	useEffect( () => {
+		const originCode = searchParams.get( 'origin' )
+		const destinationCode = searchParams.get( 'destination' )
+		const departureDateParam = searchParams.get( 'departureDate' )
+		const returnDateParam = searchParams.get( 'returnDate' )
+		const adultsParam = searchParams.get( 'adults' )
+
+		if ( originCode ) {
+			const foundOrigin = popularAirports.find( a => a.iataCode === originCode )
+			if ( foundOrigin ) setOrigin( foundOrigin )
+		}
+
+		if ( destinationCode ) {
+			const foundDestination = popularAirports.find( a => a.iataCode === destinationCode )
+			if ( foundDestination ) setDestination( foundDestination )
+		}
+
+		if ( departureDateParam ) {
+			const date = new Date( departureDateParam )
+			if ( !isNaN( date.getTime() ) ) setDepartureDate( date )
+		}
+
+		if ( returnDateParam ) {
+			const date = new Date( returnDateParam )
+			if ( !isNaN( date.getTime() ) ) setReturnDate( date )
+		}
+
+		if ( adultsParam ) {
+			const num = parseInt( adultsParam, 10 )
+			if ( num >= 1 && num <= 9 ) setAdults( num )
+		}
+	}, [ searchParams ] )
 
 	// Swap origin and destination
 	const handleSwap = useCallback( () => {
@@ -134,6 +200,21 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 	const getOptionLabel = ( option: Airport ) =>
 		`${ option.city } (${ option.iataCode }) - ${ option.name }`
 
+	// Group airports by region for better UX
+	const groupByRegion = ( option: Airport ) => {
+		if ( location && option.country === location.country ) {
+			return '📍 Nearby'
+		}
+		if ( location && option.region === location.region ) {
+			return `🌍 ${ option.region }`
+		}
+		return option.region
+	}
+
+	// Check if airport is in user's country
+	const isNearbyAirport = ( airport: Airport ) =>
+		location && airport.country === location.country
+
 	return (
 		<LocalizationProvider dateAdapter={ AdapterDateFns }>
 			<Paper
@@ -165,12 +246,60 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 					{/* Origin */ }
 					<Autocomplete
 						id="origin-airport"
-						options={ popularAirports }
+						options={ sortedAirports }
+						groupBy={ groupByRegion }
 						getOptionLabel={ getOptionLabel }
 						value={ origin }
+						disabled={ isLoading }
 						onChange={ ( _, value ) => {
 							setOrigin( value )
 							setErrors( prev => ( { ...prev, origin: '' } ) )
+						} }
+						filterOptions={ ( options, { inputValue } ) => {
+							const query = inputValue.toLowerCase()
+							return options.filter( option =>
+								option.city.toLowerCase().includes( query ) ||
+								option.iataCode.toLowerCase().includes( query ) ||
+								option.name.toLowerCase().includes( query ) ||
+								option.country.toLowerCase().includes( query )
+							)
+						} }
+						renderOption={ ( props, option ) => {
+							const { key, ...otherProps } = props
+							return (
+								<Box
+									component="li"
+									key={ key }
+									{ ...otherProps }
+									sx={ {
+										display: 'flex',
+										alignItems: 'center',
+										gap: 1,
+										py: 1,
+									} }
+								>
+									<Box sx={ { flex: 1 } }>
+										<Box sx={ { display: 'flex', alignItems: 'center', gap: 1 } }>
+											<Typography variant="body2" component="span" fontWeight={ 600 }>
+												{ option.city } ({ option.iataCode })
+											</Typography>
+											{ isNearbyAirport( option ) && (
+												<Chip
+													icon={ <NearMeIcon sx={ { fontSize: 12 } } /> }
+													label="Nearby"
+													size="small"
+													color="primary"
+													variant="outlined"
+													sx={ { height: 20, fontSize: '0.65rem' } }
+												/>
+											) }
+										</Box>
+										<Typography variant="caption" color="text.secondary" component="span" display="block">
+											{ option.name }
+										</Typography>
+									</Box>
+								</Box>
+							)
 						} }
 						renderInput={ ( params ) => (
 							<TextField
@@ -201,6 +330,7 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 					{/* Swap button */ }
 					<IconButton
 						onClick={ handleSwap }
+						disabled={ isLoading }
 						aria-label="Swap origin and destination airports"
 						title="Swap origin and destination"
 						sx={ {
@@ -213,12 +343,48 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 					{/* Destination */ }
 					<Autocomplete
 						id="destination-airport"
-						options={ popularAirports }
+						options={ sortedAirports }
+						groupBy={ groupByRegion }
 						getOptionLabel={ getOptionLabel }
 						value={ destination }
+						disabled={ isLoading }
 						onChange={ ( _, value ) => {
 							setDestination( value )
 							setErrors( prev => ( { ...prev, destination: '' } ) )
+						} }
+						filterOptions={ ( options, { inputValue } ) => {
+							const query = inputValue.toLowerCase()
+							return options.filter( option =>
+								option.city.toLowerCase().includes( query ) ||
+								option.iataCode.toLowerCase().includes( query ) ||
+								option.name.toLowerCase().includes( query ) ||
+								option.country.toLowerCase().includes( query )
+							)
+						} }
+						renderOption={ ( props, option ) => {
+							const { key, ...otherProps } = props
+							return (
+								<Box
+									component="li"
+									key={ key }
+									{ ...otherProps }
+									sx={ {
+										display: 'flex',
+										alignItems: 'center',
+										gap: 1,
+										py: 1,
+									} }
+								>
+									<Box sx={ { flex: 1 } }>
+										<Typography variant="body2" component="span" fontWeight={ 600 } display="block">
+											{ option.city } ({ option.iataCode })
+										</Typography>
+										<Typography variant="caption" color="text.secondary" component="span" display="block">
+											{ option.name }
+										</Typography>
+									</Box>
+								</Box>
+							)
 						} }
 						renderInput={ ( params ) => (
 							<TextField
@@ -255,6 +421,7 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 							setErrors( prev => ( { ...prev, departureDate: '' } ) )
 						} }
 						minDate={ new Date() }
+						disabled={ isLoading }
 						slotProps={ {
 							textField: {
 								error: !!errors.departureDate,
@@ -276,6 +443,7 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 						type="number"
 						label="Passengers"
 						className='sm:max-w-32'
+						disabled={ isLoading }
 						value={ adults }
 						onChange={ ( e ) => {
 							setAdults( Math.max( 1, Math.min( 9, parseInt( e.target.value ) || 1 ) ) )
@@ -319,6 +487,7 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 							setErrors( prev => ( { ...prev, returnDate: '' } ) )
 						} }
 						minDate={ departureDate || new Date() }
+						disabled={ isLoading }
 						slotProps={ {
 							textField: {
 								error: !!errors.returnDate,
@@ -348,11 +517,32 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 						startIcon={ isLoading ? <CircularProgress size={ 20 } color="inherit" aria-hidden="true" /> : <SearchIcon aria-hidden="true" /> }
 						sx={ {
 							height: 56,
-							minWidth: 110,
+							minWidth: 100,
 							alignSelf: 'start',
+							fontSize: '1rem',
+							fontWeight: 700,
+							letterSpacing: '0.02em',
+							background: isLoading
+								? 'linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%)'
+								: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+							boxShadow: '0 4px 14px 0 rgba(25, 118, 210, 0.4)',
+							'&:hover': {
+								background: 'linear-gradient(135deg, #1e88e5 0%, #1976d2 100%)',
+								boxShadow: '0 6px 20px rgba(25, 118, 210, 0.5)',
+								transform: 'translateY(-2px)',
+							},
+							'&:active': {
+								transform: 'translateY(0)',
+								boxShadow: '0 2px 8px rgba(25, 118, 210, 0.4)',
+							},
+							'&.Mui-disabled': {
+								background: 'linear-gradient(135deg, #90caf9 0%, #64b5f6 100%)',
+								color: 'white',
+							},
+							transition: 'all 0.2s ease-in-out',
 						} }
 					>
-						{ isLoading ? 'Searching...' : 'Search' }
+						Search
 					</Button>
 
 				</Box>

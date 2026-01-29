@@ -115,37 +115,54 @@ export default function FlightsDataGrid ( {
 					} }
 					rowHeight={ 72 }
 					columnHeaderHeight={ 56 }
-					sx={ {
+					sx={ ( theme ) => ( {
 						border: 'none',
 						borderRadius: 3,
 						overflow: 'hidden',
-						boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+						boxShadow: theme.palette.mode === 'dark'
+							? '0 1px 3px rgba(0,0,0,0.3)'
+							: '0 1px 3px rgba(0,0,0,0.08)',
+						bgcolor: 'background.paper',
 						'& .MuiDataGrid-row': {
 							cursor: 'pointer',
 							transition: 'all 0.15s ease-in-out',
 							borderLeft: '4px solid transparent',
+							bgcolor: 'background.paper',
 							'&:nth-of-type(even)': {
-								backgroundColor: 'rgba(0, 0, 0, 0.02)',
+								backgroundColor: theme.palette.mode === 'dark'
+									? 'rgba(255, 255, 255, 0.02)'
+									: 'rgba(0, 0, 0, 0.02)',
 							},
 							'&:hover': {
-								backgroundColor: 'rgba(25, 118, 210, 0.04)',
+								backgroundColor: theme.palette.mode === 'dark'
+									? 'rgba(144, 202, 249, 0.08)'
+									: 'rgba(25, 118, 210, 0.04)',
 								borderLeftColor: 'primary.main',
-								boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+								boxShadow: theme.palette.mode === 'dark'
+									? '0 2px 8px rgba(0,0,0,0.3)'
+									: '0 2px 8px rgba(0,0,0,0.08)',
 							},
 							'&.Mui-selected': {
-								backgroundColor: 'rgba(25, 118, 210, 0.08)',
+								backgroundColor: theme.palette.mode === 'dark'
+									? 'rgba(144, 202, 249, 0.16)'
+									: 'rgba(25, 118, 210, 0.08)',
 								borderLeftColor: 'primary.main',
 								'&:hover': {
-									backgroundColor: 'rgba(25, 118, 210, 0.12)',
+									backgroundColor: theme.palette.mode === 'dark'
+										? 'rgba(144, 202, 249, 0.24)'
+										: 'rgba(25, 118, 210, 0.12)',
 								},
 							},
 						},
 						'& .MuiDataGrid-cell': {
 							borderBottom: '1px solid',
-							borderColor: 'rgba(0, 0, 0, 0.06)',
+							borderColor: theme.palette.mode === 'dark'
+								? 'rgba(255, 255, 255, 0.08)'
+								: 'rgba(0, 0, 0, 0.06)',
 							px: 2,
 							display: 'flex',
 							alignItems: 'center',
+							color: 'text.primary',
 							'&:focus': {
 								outline: '2px solid',
 								outlineColor: 'primary.main',
@@ -153,12 +170,14 @@ export default function FlightsDataGrid ( {
 							},
 						},
 						'& .MuiDataGrid-columnHeaders': {
-							backgroundColor: '#f8fafc',
+							backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#f8fafc',
 							borderBottom: '2px solid',
-							borderColor: '#e2e8f0',
+							borderColor: theme.palette.mode === 'dark'
+								? 'rgba(255, 255, 255, 0.12)'
+								: '#e2e8f0',
 							'& .MuiDataGrid-columnHeaderTitle': {
 								fontWeight: 700,
-								color: '#475569',
+								color: theme.palette.mode === 'dark' ? '#94a3b8' : '#475569',
 								textTransform: 'uppercase',
 								fontSize: '0.7rem',
 								letterSpacing: '0.08em',
@@ -174,24 +193,29 @@ export default function FlightsDataGrid ( {
 						},
 						'& .MuiDataGrid-virtualScroller': {
 							minHeight: 400,
+							bgcolor: 'background.paper',
 						},
 						'& .MuiDataGrid-footerContainer': {
 							borderTop: '1px solid',
-							borderColor: '#e2e8f0',
-							backgroundColor: '#f8fafc',
+							borderColor: theme.palette.mode === 'dark'
+								? 'rgba(255, 255, 255, 0.12)'
+								: '#e2e8f0',
+							backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f8fafc',
 							minHeight: 52,
 						},
 						'& .MuiDataGrid-toolbarContainer': {
 							borderBottom: '1px solid',
-							borderColor: '#e2e8f0',
-							backgroundColor: '#ffffff',
+							borderColor: theme.palette.mode === 'dark'
+								? 'rgba(255, 255, 255, 0.12)'
+								: '#e2e8f0',
+							backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#ffffff',
 							px: 2,
 							py: 1,
 						},
 						'& .MuiTablePagination-root': {
-							color: '#64748b',
+							color: theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
 						},
-					} }
+					} ) }
 				/>
 				{/* Hidden description for screen readers */ }
 				<span id="flights-table-description" style={ { display: 'none' } }>
