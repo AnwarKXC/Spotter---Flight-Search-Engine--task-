@@ -50,7 +50,7 @@ export function DestinationSuggestions ( { onSelectDestination }: DestinationSug
 				const suggestions = getSuggestedDestinations( userLocation.countryCode )
 				setDestinations( suggestions )
 
-				const airport = getNearestAirport( userLocation.countryCode, userLocation.city )
+				const airport = getNearestAirport( userLocation.countryCode )
 				setNearestAirport( airport )
 			} catch ( error ) {
 				console.error( 'Failed to detect location:', error )

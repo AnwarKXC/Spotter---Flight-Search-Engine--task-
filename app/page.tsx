@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import { Container, Typography, Box, Alert, Link } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import { visuallyHidden } from '@mui/utils'
@@ -8,13 +9,18 @@ import { FilterPanel } from '@/app/components/Filters/FilterPanel'
 import { FilterChips } from '@/app/components/Filters/FilterChips'
 import { InteractiveChart } from '@/app/components/PriceChart/InteractiveChart'
 import { DestinationSuggestions } from '@/app/components/DestinationSuggestions/DestinationSuggestions'
+import FavoritesDrawer from '@/app/components/FavoritesDrawer/FavoritesDrawer'
 import { useFlightsSearch } from '@/app/hooks/useFlightsSearch'
 import { useFlightsFilters } from '@/app/hooks/useFlightsFilters'
+import { useFavorites, FavoriteFlight } from '@/app/hooks/useFavorites'
 import FlightsDataGrid from './components/FlightsTable/FlightsDataGrid'
 import { type SuggestedDestination } from '@/app/lib/geolocation'
 import Header from './components/Header/Header'
 
 export default function Home () {
+  const [ favoritesDrawerOpen, setFavoritesDrawerOpen ] = useState( false )
+  const [ highlightedFlightId, setHighlightedFlightId ] = useState<string | null>( null )
+
   const {
     flights,
     isLoading,
@@ -22,6 +28,7 @@ export default function Home () {
     isMockData,
     hasSearched,
     search,
+    searchParams,
   } = useFlightsSearch()
 
   const {
@@ -35,6 +42,15 @@ export default function Home () {
     availableAirlines,
     priceExtent,
   } = useFlightsFilters( flights )
+
+  const {
+    favorites,
+    favoritesCount,
+    toggleFavorite,
+    removeFavorite,
+    isFavorite,
+    clearFavorites,
+  } = useFavorites()
 
   const handleSearch = async ( params: {
     origin: string
@@ -76,6 +92,27 @@ export default function Home () {
     } )
   }
 
+  // Handle selecting a favorite flight - search and highlight it
+  const handleSelectFavorite = useCallback( async ( flight: FavoriteFlight ) => {
+    // Use stored departure date or generate a future date
+    const departureDate = flight.departureDate || new Date( Date.now() + 7 * 24 * 60 * 60 * 1000 ).toISOString().split( 'T' )[ 0 ]
+
+    // Set the flight to highlight
+    setHighlightedFlightId( flight.id )
+
+    // Perform search with the flight's route
+    await search( {
+      origin: flight.origin,
+      destination: flight.destination,
+      departureDate: departureDate,
+      returnDate: flight.returnDate,
+      adults: 1,
+    } )
+
+    // Clear highlight after 5 seconds
+    setTimeout( () => setHighlightedFlightId( null ), 5000 )
+  }, [ search ] )
+
   return (
     <Box
       component="div"
@@ -102,7 +139,20 @@ export default function Home () {
       </Link>
 
       {/* App Header with Dark Mode Toggle */ }
-      <Header />
+      <Header
+        favoritesCount={ favoritesCount }
+        onOpenFavorites={ () => setFavoritesDrawerOpen( true ) }
+      />
+
+      {/* Favorites Drawer */ }
+      <FavoritesDrawer
+        open={ favoritesDrawerOpen }
+        onClose={ () => setFavoritesDrawerOpen( false ) }
+        favorites={ favorites }
+        onRemove={ removeFavorite }
+        onClearAll={ clearFavorites }
+        onSelectFlight={ handleSelectFavorite }
+      />
 
       <Container maxWidth="xl" sx={ { py: { xs: 2, sm: 3, md: 4 } } }>
         {/* Search Form Section */ }
@@ -216,6 +266,12 @@ export default function Home () {
                     isMockData={ isMockData }
                     onClearFilters={ clearFilters }
                     hasActiveFilters={ hasActiveFilters }
+                    onToggleFavorite={ ( flight ) => toggleFavorite( flight, {
+                      departureDate: searchParams?.departureDate,
+                      returnDate: searchParams?.returnDate,
+                    } ) }
+                    isFavorite={ isFavorite }
+                    highlightedFlightId={ highlightedFlightId }
                   />
                 </Grid>
               </Grid>

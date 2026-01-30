@@ -8,14 +8,22 @@ import {
 	Box,
 	Tooltip,
 	Container,
+	Badge,
+	alpha,
 } from '@mui/material'
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff'
 import DarkModeIcon from '@mui/icons-material/DarkMode'
 import LightModeIcon from '@mui/icons-material/LightMode'
 import GitHubIcon from '@mui/icons-material/GitHub'
+import FavoriteIcon from '@mui/icons-material/Favorite'
 import { useThemeMode } from '@/app/theme/ThemeContext'
 
-export default function Header () {
+interface HeaderProps {
+	favoritesCount?: number
+	onOpenFavorites?: () => void
+}
+
+export default function Header ( { favoritesCount = 0, onOpenFavorites }: HeaderProps ) {
 	const { mode, toggleTheme } = useThemeMode()
 
 	return (
@@ -80,6 +88,38 @@ export default function Header () {
 
 					{/* Actions */ }
 					<Box sx={ { display: 'flex', alignItems: 'center', gap: 0.5 } }>
+						{/* Favorites Button */ }
+						<Tooltip title={ favoritesCount > 0 ? `${ favoritesCount } saved flights` : 'Saved flights' }>
+							<IconButton
+								onClick={ onOpenFavorites }
+								color="inherit"
+								aria-label={ `View saved flights (${ favoritesCount })` }
+								sx={ ( theme ) => ( {
+									color: favoritesCount > 0 ? 'error.main' : 'text.primary',
+									transition: 'all 0.2s ease-in-out',
+									'&:hover': {
+										backgroundColor: alpha( theme.palette.error.main, 0.1 ),
+										transform: 'scale(1.1)',
+									},
+								} ) }
+							>
+								<Badge
+									badgeContent={ favoritesCount }
+									color="error"
+									max={ 99 }
+									sx={ {
+										'& .MuiBadge-badge': {
+											fontSize: '0.65rem',
+											height: 18,
+											minWidth: 18,
+										},
+									} }
+								>
+									<FavoriteIcon />
+								</Badge>
+							</IconButton>
+						</Tooltip>
+
 						<Tooltip title={ mode === 'dark' ? 'Light mode' : 'Dark mode' }>
 							<IconButton
 								onClick={ toggleTheme }

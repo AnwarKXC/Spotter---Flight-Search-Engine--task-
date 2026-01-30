@@ -6,8 +6,9 @@ import { Paper, Box, Alert } from '@mui/material'
 import { Flight } from '@/app/lib/types'
 import { useFlightColumns } from './columns'
 import GridEmptyState from './GridEmptyState'
-import GridToolbar from './GridToolbar'
+import CustomGridToolbar from './GridToolbar'
 import { useColumnPresets } from '@/app/hooks/useColumnPresets'
+import ComparisonModal from '@/app/components/ComparisonModal/ComparisonModal'
 
 interface FlightsDataGridProps {
 	flights: Flight[]
@@ -17,6 +18,9 @@ interface FlightsDataGridProps {
 	error?: string | null
 	onClearFilters?: () => void
 	hasActiveFilters?: boolean
+	onToggleFavorite?: ( flight: Flight ) => void
+	isFavorite?: ( flightId: string, flight?: Flight ) => boolean
+	highlightedFlightId?: string | null
 }
 
 export default function FlightsDataGrid ( {
@@ -27,8 +31,11 @@ export default function FlightsDataGrid ( {
 	error = null,
 	onClearFilters,
 	hasActiveFilters = false,
+	onToggleFavorite,
+	isFavorite,
+	highlightedFlightId,
 }: FlightsDataGridProps ) {
-	const columns = useFlightColumns()
+	const columns = useFlightColumns( { onToggleFavorite, isFavorite } )
 	const [ paginationModel, setPaginationModel ] = useState( {
 		pageSize: 25,
 		page: 0,
@@ -82,6 +89,19 @@ export default function FlightsDataGrid ( {
 		return flights.filter( f => selectedRowIds.includes( f.id ) )
 	}, [ flights, selectedRowIds ] )
 
+	// Comparison modal state
+	const [ isCompareModalOpen, setIsCompareModalOpen ] = useState( false )
+
+	const handleOpenCompare = useCallback( () => {
+		if ( selectedFlights.length >= 2 ) {
+			setIsCompareModalOpen( true )
+		}
+	}, [ selectedFlights.length ] )
+
+	const handleCloseCompare = useCallback( () => {
+		setIsCompareModalOpen( false )
+	}, [] )
+
 	// Custom empty state
 	const NoRowsOverlay = useCallback(
 		() => (
@@ -92,24 +112,6 @@ export default function FlightsDataGrid ( {
 			/>
 		),
 		[ hasSearched, onClearFilters, hasActiveFilters ]
-	)
-
-	// Custom toolbar with flight count and preset selector
-	const CustomToolbar = useCallback(
-		() => (
-			<GridToolbar
-				totalResults={ flights.length }
-				filteredResults={ flights.length }
-				isMockData={ isMockData }
-				activePreset={ activePreset }
-				onPresetChange={ handlePresetChange }
-				presets={ presets }
-				isAutoMobile={ isAutoMobile }
-				selectedCount={ selectedRowIds.length }
-				selectedFlights={ selectedFlights }
-			/>
-		),
-		[ flights.length, isMockData, activePreset, handlePresetChange, presets, isAutoMobile, selectedRowIds.length, selectedFlights ]
 	)
 
 	return (
@@ -132,6 +134,20 @@ export default function FlightsDataGrid ( {
 					{ error }
 				</Alert>
 			) }
+
+			{/* Custom Toolbar - Rendered outside DataGrid for reliability */ }
+			<CustomGridToolbar
+				totalResults={ flights.length }
+				filteredResults={ flights.length }
+				isMockData={ isMockData }
+				activePreset={ activePreset }
+				onPresetChange={ handlePresetChange }
+				presets={ presets }
+				isAutoMobile={ isAutoMobile }
+				selectedCount={ selectedRowIds.length }
+				onCompare={ handleOpenCompare }
+			/>
+
 			<Box sx={ {
 				height: { xs: 450, sm: 500, md: 600 },
 				width: '100%',
@@ -152,9 +168,11 @@ export default function FlightsDataGrid ( {
 					onColumnVisibilityModelChange={ setManualVisibility }
 					aria-label="Flight search results"
 					aria-describedby="flights-table-description"
+					getRowClassName={ ( params ) =>
+						params.id === highlightedFlightId ? 'highlighted-row' : ''
+					}
 					slots={ {
 						noRowsOverlay: NoRowsOverlay,
-						toolbar: CustomToolbar,
 					} }
 					slotProps={ {
 						loadingOverlay: {
@@ -203,6 +221,16 @@ export default function FlightsDataGrid ( {
 							transition: 'all 0.15s ease-in-out',
 							borderLeft: '4px solid transparent',
 							bgcolor: 'background.paper',
+							'&.highlighted-row': {
+								backgroundColor: theme.palette.mode === 'dark'
+									? 'rgba(239, 68, 68, 0.15)'
+									: 'rgba(239, 68, 68, 0.1)',
+								borderLeftColor: '#ef4444',
+								animation: 'pulse-highlight 1.5s ease-in-out 3',
+								'& .MuiDataGrid-cell': {
+									fontWeight: 600,
+								},
+							},
 							'&:nth-of-type(even)': {
 								backgroundColor: theme.palette.mode === 'dark'
 									? 'rgba(255, 255, 255, 0.02)'
@@ -285,10 +313,25 @@ export default function FlightsDataGrid ( {
 								: '#e2e8f0',
 							backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#ffffff',
 							px: 2,
-							py: 1,
+							py: 1.5,
+							minHeight: 56,
+							display: 'flex',
+							alignItems: 'center',
 						},
 						'& .MuiTablePagination-root': {
 							color: theme.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
+						},
+						'@keyframes pulse-highlight': {
+							'0%, 100%': {
+								backgroundColor: theme.palette.mode === 'dark'
+									? 'rgba(239, 68, 68, 0.15)'
+									: 'rgba(239, 68, 68, 0.1)',
+							},
+							'50%': {
+								backgroundColor: theme.palette.mode === 'dark'
+									? 'rgba(239, 68, 68, 0.25)'
+									: 'rgba(239, 68, 68, 0.2)',
+							},
 						},
 					} ) }
 				/>
@@ -297,6 +340,13 @@ export default function FlightsDataGrid ( {
 					Sortable table of flight results. Use arrow keys to navigate between cells, Enter to sort columns.
 				</span>
 			</Box>
+
+			{/* Comparison Modal */ }
+			<ComparisonModal
+				open={ isCompareModalOpen }
+				onClose={ handleCloseCompare }
+				flights={ selectedFlights }
+			/>
 		</Paper>
 	)
 }

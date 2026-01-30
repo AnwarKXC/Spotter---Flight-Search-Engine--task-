@@ -360,7 +360,7 @@ export function getSuggestedDestinations ( countryCode: string ): SuggestedDesti
 /**
  * Get nearest major airport based on user's location
  */
-export function getNearestAirport ( countryCode: string, _city?: string ): { code: string; name: string } {
+export function getNearestAirport ( countryCode: string ): { code: string; name: string } {
 	const airportsByCountry: Record<string, { code: string; name: string }[]> = {
 		EG: [
 			{ code: 'CAI', name: 'Cairo International' },

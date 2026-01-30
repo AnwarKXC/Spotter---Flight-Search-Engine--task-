@@ -13,6 +13,7 @@ interface UseFlightsSearchReturn {
   searchParams: FlightSearchParams | null;
   search: (params: FlightSearchParams) => Promise<void>;
   clearResults: () => void;
+  setFlightsFromFavorite: (flights: Flight[]) => void;
 }
 
 // Parse search params from URL
@@ -154,6 +155,14 @@ export function useFlightsSearch(): UseFlightsSearchReturn {
     router.replace(newUrl, { scroll: false });
   }, [pathname, router, urlSearchParams]);
 
+  // Set flights from favorites (without API call)
+  const setFlightsFromFavorite = useCallback((favoriteFlights: Flight[]) => {
+    setFlights(favoriteFlights);
+    setHasSearched(true);
+    setIsMockData(false);
+    setError(null);
+  }, []);
+
   return {
     flights,
     isLoading,
@@ -163,6 +172,7 @@ export function useFlightsSearch(): UseFlightsSearchReturn {
     searchParams,
     search,
     clearResults,
+    setFlightsFromFavorite,
   };
 }
 
