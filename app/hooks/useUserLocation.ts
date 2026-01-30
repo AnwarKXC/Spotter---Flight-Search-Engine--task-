@@ -12,16 +12,6 @@ export interface UserLocation {
 	timezone: string
 }
 
-interface IPAPIResponse {
-	country: string
-	countryCode: string
-	city: string
-	region: string
-	lat: number
-	lon: number
-	timezone: string
-}
-
 // Map countries to regions for airport grouping
 const countryToRegion: Record<string, string> = {
 	// North America
@@ -56,28 +46,28 @@ export function useUserLocation () {
 	useEffect( () => {
 		const fetchLocation = async () => {
 			try {
-				// Try ip-api.com first (free, no API key needed, 45 req/min limit)
-				const response = await fetch( 'http://ip-api.com/json/?fields=country,countryCode,city,region,lat,lon,timezone' )
+				// Use internal API route to avoid mixed content issues on HTTPS
+				const response = await fetch( '/api/geolocation' )
 
 				if ( !response.ok ) {
 					throw new Error( 'Failed to fetch location' )
 				}
 
-				const data: IPAPIResponse = await response.json()
+				const data = await response.json()
 
-				const region = countryToRegion[ data.countryCode ] || 'Unknown'
+				const region = countryToRegion[ data.countryCode ] || data.region || 'Unknown'
 
 				setLocation( {
 					country: data.countryCode,
-					countryName: data.country,
-					city: data.city,
+					countryName: data.countryName || data.country,
+					city: data.city || 'Unknown',
 					region: region,
-					latitude: data.lat,
-					longitude: data.lon,
+					latitude: data.latitude,
+					longitude: data.longitude,
 					timezone: data.timezone,
 				} )
 			} catch {
-				// Fallback: try ipapi.co (also free)
+				// Fallback: try ipapi.co (also free, supports HTTPS)
 				try {
 					const fallbackResponse = await fetch( 'https://ipapi.co/json/' )
 					if ( fallbackResponse.ok ) {

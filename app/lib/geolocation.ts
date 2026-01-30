@@ -1,5 +1,5 @@
 // IP-based geolocation service (no permission required)
-// Uses free IP geolocation APIs to detect user's approximate location
+// Uses internal API route to proxy requests (avoids mixed content on HTTPS)
 
 export interface UserLocation {
 	city: string
@@ -10,24 +10,15 @@ export interface UserLocation {
 	timezone: string
 }
 
-interface IpApiResponse {
-	status: string
-	country: string
-	countryCode: string
-	city: string
-	lat: number
-	lon: number
-	timezone: string
-}
-
 /**
  * Detects user location using IP geolocation (no permission needed)
+ * Uses internal API route to avoid mixed content issues on HTTPS
  * Falls back to a default location if detection fails
  */
 export async function detectUserLocation (): Promise<UserLocation> {
 	try {
-		// Using ip-api.com (free for non-commercial use, no API key needed)
-		const response = await fetch( 'http://ip-api.com/json/?fields=status,country,countryCode,city,lat,lon,timezone', {
+		// Use internal API route to proxy geolocation request (avoids mixed content on HTTPS)
+		const response = await fetch( '/api/geolocation', {
 			cache: 'force-cache', // Cache the result
 		} )
 
@@ -35,18 +26,14 @@ export async function detectUserLocation (): Promise<UserLocation> {
 			throw new Error( 'Failed to fetch location' )
 		}
 
-		const data: IpApiResponse = await response.json()
-
-		if ( data.status !== 'success' ) {
-			throw new Error( 'Location detection failed' )
-		}
+		const data = await response.json()
 
 		return {
-			city: data.city,
-			country: data.country,
+			city: data.city || 'Unknown',
+			country: data.countryName || data.country,
 			countryCode: data.countryCode,
-			latitude: data.lat,
-			longitude: data.lon,
+			latitude: data.latitude,
+			longitude: data.longitude,
 			timezone: data.timezone,
 		}
 	} catch ( error ) {

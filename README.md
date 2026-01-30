@@ -2,10 +2,25 @@
 
 A modern, data-product UI flight search engine built with **Next.js 16**, **TypeScript**, **Material UI v7**, and **Recharts**. Features real-time flight data from the **Amadeus Self-Service API** with intelligent fallback to demo data.
 
+## 🌐 Live Demo
+
+**[👉 View Live Demo](https://spotter-flight-search-engine-task.vercel.app)**
+
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)
 ![MUI](https://img.shields.io/badge/MUI-v7-007FFF?logo=mui)
+![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)
 ![License](https://img.shields.io/badge/License-MIT-green)
+
+---
+
+## 📸 Screenshots
+
+### Light Mode
+![Flight Search - Light Mode](./screenshots/light.png)
+
+### Dark Mode
+![Flight Search - Dark Mode](./screenshots/dark.png)
 
 ## ✨ Features
 
@@ -177,6 +192,77 @@ When the API is unavailable or rate-limited, the app automatically falls back to
 | 429 | API quota exceeded | Show cached/demo results |
 | Network Error | Connection failed | Retry with exponential backoff |
 | Invalid Params | Adjust search criteria | Form validation error |
+
+### IP Geolocation: The Mixed Content Challenge
+
+#### 🔴 The Problem
+
+When deploying to Vercel (HTTPS), we encountered a **Mixed Content** error:
+
+```
+Mixed Content: The page at 'https://...' was loaded over HTTPS, 
+but requested an insecure resource 'http://ip-api.com/json/...'. 
+This request has been blocked.
+```
+
+**Root Cause**: The free tier of [ip-api.com](http://ip-api.com) only supports HTTP (not HTTPS). Modern browsers block HTTP requests from HTTPS pages for security reasons.
+
+#### 🔍 Alternatives Considered
+
+| Solution | Pros | Cons | Decision |
+|----------|------|------|----------|
+| **1. ip-api.com Pro** | Same API, HTTPS support | Requires paid subscription (~$13/mo) | ❌ Overkill for this feature |
+| **2. ipapi.co** | Free HTTPS tier | Rate limited (1000/day), less accurate | ⚠️ Used as fallback only |
+| **3. ipinfo.io** | Reliable, HTTPS | Requires API key, 50k/mo free | ❌ Extra credential management |
+| **4. MaxMind GeoLite2** | Self-hosted, no API calls | Requires database setup, updates | ❌ Too complex for this use case |
+| **5. Server-side Proxy** | Free, uses existing ip-api.com | Adds one API route | ✅ **Chosen solution** |
+
+#### ✅ Our Solution: Server-Side Proxy
+
+We created a Next.js API route (`/api/geolocation`) that:
+
+1. **Runs on the server** where HTTP requests are allowed
+2. **Calls ip-api.com** over HTTP (server-to-server)
+3. **Returns data to client** over HTTPS (browser-to-server)
+4. **Extracts client IP** from `x-forwarded-for` header (provided by Vercel)
+5. **Caches responses** for 1 hour to reduce API calls
+
+```
+Browser (HTTPS) → /api/geolocation → ip-api.com (HTTP) → Response → Browser
+```
+
+#### 📁 Implementation
+
+```typescript
+// app/api/geolocation/route.ts
+export async function GET(request: Request) {
+  // Get client IP from Vercel headers
+  const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0];
+  
+  // Server-side HTTP request (allowed)
+  const response = await fetch(`http://ip-api.com/json/${clientIp}?fields=...`);
+  
+  // Return to client over HTTPS
+  return NextResponse.json(data);
+}
+```
+
+#### 🔄 Fallback Chain
+
+```
+1. /api/geolocation (primary - server proxy to ip-api.com)
+      ↓ (on failure)
+2. https://ipapi.co/json/ (backup - direct HTTPS call)
+      ↓ (on failure)  
+3. Default location (New York, US)
+```
+
+#### 💡 Lessons Learned
+
+- **Always check API protocol support** before choosing a service
+- **Server-side proxies** are a clean solution for HTTP-only APIs
+- **Multiple fallbacks** ensure features degrade gracefully
+- **Vercel provides client IP** via headers, making proxies effective
 
 ---
 
