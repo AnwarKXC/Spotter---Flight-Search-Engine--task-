@@ -2,9 +2,17 @@
 
 import { useMemo } from 'react'
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
-import { Box, Typography, Tooltip } from '@mui/material'
+import { Box, Typography, Tooltip, IconButton } from '@mui/material'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import FavoriteIcon from '@mui/icons-material/Favorite'
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import { Flight } from '@/app/lib/types'
+
+// Props for favorite functionality
+export interface ColumnsConfig {
+	onToggleFavorite?: ( flight: Flight ) => void
+	isFavorite?: ( flightId: string, flight?: Flight ) => boolean
+}
 
 // Format price with currency
 const formatPrice = ( price: number, currency: string = 'USD' ): string => {
@@ -295,9 +303,57 @@ const AirlineCell = ( { value, row }: GridRenderCellParams<Flight, string> ) => 
 }
 
 // Column definitions with accessibility improvements
-export const useFlightColumns = (): GridColDef<Flight>[] => {
+export const useFlightColumns = ( config?: ColumnsConfig ): GridColDef<Flight>[] => {
+	const { onToggleFavorite, isFavorite } = config || {}
+
 	return useMemo(
 		() => [
+			// Favorite column
+			{
+				field: 'favorite',
+				headerName: '',
+				description: 'Save to favorites',
+				width: 50,
+				minWidth: 50,
+				maxWidth: 50,
+				sortable: false,
+				filterable: false,
+				disableColumnMenu: true,
+				renderCell: ( params: GridRenderCellParams<Flight> ) => {
+					const flight = params.row
+					const isCurrentlyFavorite = isFavorite?.( flight.id, flight ) ?? false
+
+					return (
+						<Tooltip title={ isCurrentlyFavorite ? 'Remove from favorites' : 'Save to favorites' }>
+							<IconButton
+								size="small"
+								onClick={ ( e ) => {
+									e.stopPropagation()
+									onToggleFavorite?.( flight )
+								} }
+								sx={ ( theme ) => ( {
+									color: isCurrentlyFavorite ? 'error.main' : 'text.secondary',
+									transition: 'all 0.2s ease-in-out',
+									'&:hover': {
+										color: 'error.main',
+										transform: 'scale(1.2)',
+										backgroundColor: theme.palette.mode === 'dark'
+											? 'rgba(239, 68, 68, 0.1)'
+											: 'rgba(239, 68, 68, 0.08)',
+									},
+								} ) }
+								aria-label={ isCurrentlyFavorite ? 'Remove from favorites' : 'Save to favorites' }
+							>
+								{ isCurrentlyFavorite ? (
+									<FavoriteIcon sx={ { fontSize: '1.1rem' } } />
+								) : (
+									<FavoriteBorderIcon sx={ { fontSize: '1.1rem' } } />
+								) }
+							</IconButton>
+						</Tooltip>
+					)
+				},
+			},
 			{
 				field: 'airline',
 				headerName: 'Airline',
@@ -347,7 +403,7 @@ export const useFlightColumns = (): GridColDef<Flight>[] => {
 				renderCell: PriceCell,
 			},
 		],
-		[]
+		[ onToggleFavorite, isFavorite ]
 	)
 }
 

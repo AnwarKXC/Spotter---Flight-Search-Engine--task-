@@ -31,6 +31,18 @@ A modern, data-product UI flight search engine built with **Next.js 16**, **Type
 - 🔄 **Real-time Filtering** - Filter by stops, airlines, and price range
 - 🏷️ **Flight Badges** - "Cheapest", "Fastest", and "Best Value" indicators
 
+### ✨ Pro Features (NEW)
+- 🆚 **Flight Comparison** - Select up to 3 flights and compare side-by-side in a beautiful modal
+  - Smart analysis: Cheapest, Fastest, Fewest Stops badges
+  - Savings calculator showing potential savings
+  - Responsive cards with detailed flight info
+  - Desktop comparison table for quick scanning
+- 📋 **Column Presets** - Switch between view modes instantly
+  - Quick View: Essential columns (Price, Airline, Duration)
+  - Detailed: All columns visible
+  - Mobile: Auto-optimized for small screens
+  - Persists to localStorage
+
 ### Enhanced UX
 - 🌓 **Dark/Light Mode** - System-aware with persistent preference
 - 📍 **IP-Based Geolocation** - Auto-detect nearby airports
@@ -112,10 +124,13 @@ app/
 │   │   └── SearchForm.tsx      # Flight search form with validation
 │   │
 │   ├── FlightsTable/
-│   │   ├── FlightsDataGrid.tsx # MUI X DataGrid with custom columns
+│   │   ├── FlightsDataGrid.tsx # MUI X DataGrid with selection & comparison
 │   │   ├── columns.tsx         # Column definitions & renderers
-│   │   ├── GridToolbar.tsx     # Custom toolbar with export
+│   │   ├── GridToolbar.tsx     # Custom toolbar with presets & compare
 │   │   └── GridEmptyState.tsx  # Empty state component
+│   │
+│   ├── ComparisonModal/
+│   │   └── ComparisonModal.tsx # Side-by-side flight comparison (PRO)
 │   │
 │   ├── Filters/
 │   │   ├── FilterPanel.tsx     # Sidebar filter controls
@@ -128,6 +143,7 @@ app/
 │   ├── useFlightsSearch.ts     # Search state & API integration
 │   ├── useFlightsFilters.ts    # Filter state management
 │   ├── useGridPreferences.ts   # Column preferences persistence
+│   ├── useColumnPresets.ts     # Column preset management (NEW)
 │   └── useApiErrorHandling.ts  # Error handling with retry
 │
 └── theme/
@@ -154,7 +170,57 @@ npm run lint:fix     # Fix ESLint issues automatically
 
 ---
 
-## 🎨 Design System
+## � Flight Comparison (Pro Feature)
+
+Compare up to 3 flights side-by-side with intelligent analysis.
+
+### How to Use
+1. **Select Flights** - Click checkboxes on 2-3 flight rows
+2. **Click Compare** - Button appears in toolbar when 2+ flights selected
+3. **Analyze** - Modal shows side-by-side comparison with recommendations
+
+### Features
+| Feature | Description |
+|---------|-------------|
+| **Smart Badges** | Cheapest 💰, Fastest ⚡, Fewest Stops ✈️ |
+| **Savings Banner** | Shows potential savings choosing cheapest option |
+| **Flight Cards** | Visual cards with route, timing, and pricing |
+| **Comparison Table** | Desktop-only quick comparison grid |
+| **Responsive** | Full-screen modal on mobile, dialog on desktop |
+
+### Implementation
+```typescript
+// Select flights (max 3)
+const [selectedRowIds, setSelectedRowIds] = useState<GridRowId[]>([])
+
+// Open comparison modal
+<ComparisonModal 
+  open={isCompareModalOpen} 
+  onClose={handleCloseCompare}
+  flights={selectedFlights} 
+/>
+```
+
+---
+
+## 📋 Column Presets
+
+Switch between optimized column views instantly.
+
+| Preset | Columns Shown | Use Case |
+|--------|---------------|----------|
+| **Quick View** | Price, Airline, Duration | Fast scanning |
+| **Detailed** | All columns | Full analysis |
+| **Mobile** | Price, Airline, Stops | Auto-applied on small screens |
+
+### Auto-Detection
+- Automatically switches to Mobile preset on screens < 900px
+- Manual override persists to localStorage
+- Resets when changing presets
+
+---
+
+## �🎨 Design System
 
 ### Border Radius Tokens
 ```typescript
@@ -308,11 +374,14 @@ See [.github/copilot-instructions.md](.github/copilot-instructions.md) for the c
 - [x] 100+ worldwide airports
 - [x] Responsive design
 - [x] Accessibility (WCAG AA)
+- [x] **Flight Comparison Mode** - Select & compare up to 3 flights side-by-side
+- [x] **Column Presets** - Quick View, Detailed, Mobile with auto-detection
+- [x] **Redesigned Toolbar** - Professional gradient styling with selection count
 
 ### Planned 📋
-- [ ] Flight comparison mode
-- [ ] Column presets
-- [ ] Advanced chart interactions
+- [ ] Advanced chart interactions (click to filter)
+- [ ] Export comparison as PDF
+- [ ] Save favorite flights
 
 ---
 
