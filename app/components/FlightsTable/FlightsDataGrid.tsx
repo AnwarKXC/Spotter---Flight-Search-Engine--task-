@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, GridColumnVisibilityModel } from '@mui/x-data-grid'
 import { Paper, Box, Alert } from '@mui/material'
 import { Flight } from '@/app/lib/types'
 import { useFlightColumns } from './columns'
 import GridEmptyState from './GridEmptyState'
 import GridToolbar from './GridToolbar'
+import { useColumnPresets } from '@/app/hooks/useColumnPresets'
 
 interface FlightsDataGridProps {
 	flights: Flight[]
@@ -33,6 +34,24 @@ export default function FlightsDataGrid ( {
 		page: 0,
 	} )
 
+	// Column presets hook
+	const { activePreset, setPreset, columnVisibility, presets, isAutoMobile } = useColumnPresets()
+
+	// Allow manual column visibility overrides on top of presets
+	const [ manualVisibility, setManualVisibility ] = useState<GridColumnVisibilityModel>( {} )
+
+	// Merge preset visibility with manual overrides
+	const mergedVisibility = useMemo( () => ( {
+		...columnVisibility,
+		...manualVisibility,
+	} ), [ columnVisibility, manualVisibility ] )
+
+	// Reset manual overrides when preset changes
+	const handlePresetChange = useCallback( ( preset: typeof activePreset ) => {
+		setManualVisibility( {} )
+		setPreset( preset )
+	}, [ setPreset ] )
+
 	// Memoize rows for performance
 	const rows = useMemo( () => flights, [ flights ] )
 
@@ -48,10 +67,20 @@ export default function FlightsDataGrid ( {
 		[ hasSearched, onClearFilters, hasActiveFilters ]
 	)
 
-	// Custom toolbar with flight count
+	// Custom toolbar with flight count and preset selector
 	const CustomToolbar = useCallback(
-		() => <GridToolbar totalResults={ flights.length } filteredResults={ flights.length } isMockData={ isMockData } />,
-		[ flights.length, isMockData ]
+		() => (
+			<GridToolbar
+				totalResults={ flights.length }
+				filteredResults={ flights.length }
+				isMockData={ isMockData }
+				activePreset={ activePreset }
+				onPresetChange={ handlePresetChange }
+				presets={ presets }
+				isAutoMobile={ isAutoMobile }
+			/>
+		),
+		[ flights.length, isMockData, activePreset, handlePresetChange, presets, isAutoMobile ]
 	)
 
 	return (
@@ -87,6 +116,8 @@ export default function FlightsDataGrid ( {
 					onPaginationModelChange={ setPaginationModel }
 					pageSizeOptions={ [ 10, 25, 50, 100 ] }
 					disableRowSelectionOnClick
+					columnVisibilityModel={ mergedVisibility }
+					onColumnVisibilityModelChange={ setManualVisibility }
 					aria-label="Flight search results"
 					aria-describedby="flights-table-description"
 					slots={ {
