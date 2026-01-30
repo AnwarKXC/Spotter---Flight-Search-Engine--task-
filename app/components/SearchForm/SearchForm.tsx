@@ -228,8 +228,11 @@ export default function SearchForm ( { onSearch, isLoading = false }: SearchForm
 				} }
 				sx={ {
 					p: 3,
-					mb: 3,
-					borderRadius: 3,
+					mb: 6,
+					mt: 2,
+					borderRadius: 2,
+					maxWidth: 1200,
+					marginInline: 'auto',
 				} }
 			>
 				<Box
