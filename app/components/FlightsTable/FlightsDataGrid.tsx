@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { DataGrid, GridColumnVisibilityModel } from '@mui/x-data-grid'
+import { DataGrid, GridRowId, GridRowSelectionModel } from '@mui/x-data-grid'
 import { Paper, Box, Alert } from '@mui/material'
 import { Flight } from '@/app/lib/types'
 import { useFlightColumns } from './columns'
@@ -34,11 +34,16 @@ export default function FlightsDataGrid ( {
 		page: 0,
 	} )
 
-	// Column presets hook
-	const { activePreset, setPreset, columnVisibility, presets, isAutoMobile } = useColumnPresets()
-
-	// Allow manual column visibility overrides on top of presets
-	const [ manualVisibility, setManualVisibility ] = useState<GridColumnVisibilityModel>( {} )
+	// Column presets hook (includes persisted manual visibility)
+	const {
+		activePreset,
+		setPreset,
+		columnVisibility,
+		presets,
+		isAutoMobile,
+		manualVisibility,
+		setManualVisibility,
+	} = useColumnPresets()
 
 	// Merge preset visibility with manual overrides
 	const mergedVisibility = useMemo( () => ( {
@@ -46,14 +51,36 @@ export default function FlightsDataGrid ( {
 		...manualVisibility,
 	} ), [ columnVisibility, manualVisibility ] )
 
-	// Reset manual overrides when preset changes
+	// Reset manual overrides when preset changes (handled in hook now)
 	const handlePresetChange = useCallback( ( preset: typeof activePreset ) => {
-		setManualVisibility( {} )
 		setPreset( preset )
 	}, [ setPreset ] )
 
 	// Memoize rows for performance
 	const rows = useMemo( () => flights, [ flights ] )
+
+	// Row selection for comparison (max 3)
+	const [ selectedRowIds, setSelectedRowIds ] = useState<GridRowId[]>( [] )
+
+	const handleRowSelection = useCallback( ( model: GridRowSelectionModel ) => {
+		// MUI X v8: model has { type, ids } structure
+		const ids = Array.from( model.ids )
+		// Limit to max 3 selections for comparison
+		if ( ids.length <= 3 ) {
+			setSelectedRowIds( ids )
+		}
+	}, [] )
+
+	// Create the selection model for DataGrid
+	const rowSelectionModel: GridRowSelectionModel = useMemo( () => ( {
+		type: 'include' as const,
+		ids: new Set( selectedRowIds ),
+	} ), [ selectedRowIds ] )
+
+	// Get selected flight objects for comparison
+	const selectedFlights = useMemo( () => {
+		return flights.filter( f => selectedRowIds.includes( f.id ) )
+	}, [ flights, selectedRowIds ] )
 
 	// Custom empty state
 	const NoRowsOverlay = useCallback(
@@ -78,9 +105,11 @@ export default function FlightsDataGrid ( {
 				onPresetChange={ handlePresetChange }
 				presets={ presets }
 				isAutoMobile={ isAutoMobile }
+				selectedCount={ selectedRowIds.length }
+				selectedFlights={ selectedFlights }
 			/>
 		),
-		[ flights.length, isMockData, activePreset, handlePresetChange, presets, isAutoMobile ]
+		[ flights.length, isMockData, activePreset, handlePresetChange, presets, isAutoMobile, selectedRowIds.length, selectedFlights ]
 	)
 
 	return (
@@ -115,6 +144,9 @@ export default function FlightsDataGrid ( {
 					paginationModel={ paginationModel }
 					onPaginationModelChange={ setPaginationModel }
 					pageSizeOptions={ [ 10, 25, 50, 100 ] }
+					checkboxSelection
+					rowSelectionModel={ rowSelectionModel }
+					onRowSelectionModelChange={ handleRowSelection }
 					disableRowSelectionOnClick
 					columnVisibilityModel={ mergedVisibility }
 					onColumnVisibilityModelChange={ setManualVisibility }
@@ -154,6 +186,18 @@ export default function FlightsDataGrid ( {
 							? '0 1px 3px rgba(0,0,0,0.3)'
 							: '0 1px 3px rgba(0,0,0,0.08)',
 						bgcolor: 'background.paper',
+						// Checkbox column styling - larger checkboxes and wider column
+						'& .MuiDataGrid-cellCheckbox, & .MuiDataGrid-columnHeaderCheckbox': {
+							minWidth: 70,
+							width: 70,
+							justifyContent: 'center',
+							'& .MuiCheckbox-root': {
+								padding: 1,
+								'& .MuiSvgIcon-root': {
+									fontSize: '1.5rem',
+								},
+							},
+						},
 						'& .MuiDataGrid-row': {
 							cursor: 'pointer',
 							transition: 'all 0.15s ease-in-out',

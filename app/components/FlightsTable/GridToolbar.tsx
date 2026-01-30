@@ -10,9 +10,11 @@ import {
 	GridToolbarDensitySelector,
 	GridToolbarExport,
 } from '@mui/x-data-grid'
-import { Box, Typography, Chip, Select, MenuItem, FormControl, InputLabel, SelectChangeEvent } from '@mui/material'
+import { Box, Typography, Chip, Select, MenuItem, FormControl, InputLabel, SelectChangeEvent, Button } from '@mui/material'
 import ViewColumnIcon from '@mui/icons-material/ViewColumn'
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows'
 import { PresetName, ColumnPreset } from '@/app/hooks/useColumnPresets'
+import { Flight } from '@/app/lib/types'
 
 interface GridToolbarProps {
 	totalResults: number
@@ -23,6 +25,9 @@ interface GridToolbarProps {
 	onPresetChange?: ( preset: PresetName ) => void
 	presets?: ColumnPreset[]
 	isAutoMobile?: boolean
+	// Comparison props
+	selectedCount?: number
+	selectedFlights?: Flight[]
 }
 
 export default function GridToolbar ( {
@@ -33,6 +38,8 @@ export default function GridToolbar ( {
 	onPresetChange,
 	presets,
 	isAutoMobile = false,
+	selectedCount = 0,
+	selectedFlights = [],
 }: GridToolbarProps ) {
 	const resultsText = filteredResults === totalResults
 		? `${ totalResults } flight${ totalResults !== 1 ? 's' : '' }`
@@ -68,7 +75,37 @@ export default function GridToolbar ( {
 						sx={ { height: 20, fontSize: '0.7rem' } }
 					/>
 				) }
+				{ selectedCount > 0 && (
+					<Chip
+						label={ `${ selectedCount } selected${ selectedCount >= 3 ? ' (max)' : '' }` }
+						size="small"
+						color={ selectedCount >= 2 ? 'primary' : 'default' }
+						aria-label={ `${ selectedCount } flights selected for comparison` }
+						sx={ { height: 20, fontSize: '0.7rem' } }
+					/>
+				) }
 			</Box>
+
+			{/* Compare Button */ }
+			{ selectedCount >= 2 && (
+				<Button
+					variant="contained"
+					size="small"
+					startIcon={ <CompareArrowsIcon /> }
+					aria-label={ `Compare ${ selectedCount } selected flights` }
+					sx={ {
+						textTransform: 'none',
+						fontWeight: 600,
+						borderRadius: 2,
+					} }
+					onClick={ () => {
+						// Comparison modal would go here - left as interview talking point
+						console.log( 'Compare flights:', selectedFlights )
+					} }
+				>
+					Compare ({ selectedCount })
+				</Button>
+			) }
 
 			{/* Column Presets Selector */ }
 			{ presets && activePreset && onPresetChange && (

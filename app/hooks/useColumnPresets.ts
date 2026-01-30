@@ -57,6 +57,7 @@ export const COLUMN_PRESETS: ColumnPreset[] = [
 ]
 
 const STORAGE_KEY = 'flights-column-preset'
+const MANUAL_VISIBILITY_KEY = 'flights-column-manual-visibility'
 const MOBILE_BREAKPOINT = 768
 
 export interface UseColumnPresetsReturn {
@@ -65,6 +66,8 @@ export interface UseColumnPresetsReturn {
 	columnVisibility: GridColumnVisibilityModel
 	presets: ColumnPreset[]
 	isAutoMobile: boolean
+	manualVisibility: GridColumnVisibilityModel
+	setManualVisibility: (model: GridColumnVisibilityModel) => void
 }
 
 export function useColumnPresets(): UseColumnPresetsReturn {
@@ -85,6 +88,17 @@ export function useColumnPresets(): UseColumnPresetsReturn {
 			return saved as PresetName
 		}
 		return 'detailed'
+	})
+	
+	// Manual column visibility overrides (persisted separately)
+	const [manualVisibility, setManualVisibilityState] = useState<GridColumnVisibilityModel>(() => {
+		if (typeof window === 'undefined') return {}
+		try {
+			const saved = localStorage.getItem(MANUAL_VISIBILITY_KEY)
+			return saved ? JSON.parse(saved) : {}
+		} catch {
+			return {}
+		}
 	})
 	
 	const [isAutoMobile, setIsAutoMobile] = useState(false)
@@ -115,9 +129,20 @@ export function useColumnPresets(): UseColumnPresetsReturn {
 	const setPreset = useCallback((preset: PresetName) => {
 		setManualPreset(preset)
 		setActivePreset(preset)
+		// Clear manual visibility when switching presets
+		setManualVisibilityState({})
 		
 		if (typeof window !== 'undefined') {
 			localStorage.setItem(STORAGE_KEY, preset)
+			localStorage.removeItem(MANUAL_VISIBILITY_KEY)
+		}
+	}, [])
+
+	// Set manual visibility with persistence
+	const setManualVisibility = useCallback((model: GridColumnVisibilityModel) => {
+		setManualVisibilityState(model)
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(MANUAL_VISIBILITY_KEY, JSON.stringify(model))
 		}
 	}, [])
 
@@ -130,6 +155,8 @@ export function useColumnPresets(): UseColumnPresetsReturn {
 		columnVisibility,
 		presets: COLUMN_PRESETS,
 		isAutoMobile,
+		manualVisibility,
+		setManualVisibility,
 	}
 }
 
